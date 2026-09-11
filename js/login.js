@@ -93,12 +93,12 @@
 
     // Cek sesi Supabase yang mungkin masih tersimpan (supabase-js otomatis
     // menyimpan sesi login ke localStorage & memperbaruinya sendiri).
-   async function checkExistingSession() {
-  if (!supabaseClient) { updateAdminUI(); return; }
-  const { data } = await supabaseClient.auth.getSession();
-  isAdmin = !!(data && data.session);
-  updateAdminUI();
-}
+    async function checkExistingSession() {
+     if (!supabaseClient) { updateAdminUI(); return; }
+     const { data } = await supabaseClient.auth.getSession();
+     isAdmin = !!(data && data.session);
+     updateAdminUI();
+    }
 
     // Toggle tampilkan/sembunyikan kata sandi
     loginTogglePw.addEventListener('click', () => {
