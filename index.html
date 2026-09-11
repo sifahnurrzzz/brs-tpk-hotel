@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Otomatisasi dan Peramalan BRS-TPK Hotel Kota Tasikmalaya</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <script src="js/lib/chart.min.js"></script>
+  <script src="js/lib/chartjs-plugin-datalabels.min.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+
+<body>
+
+  <!-- ============================================================
+       OVERLAY LOGIN ADMIN
+       ============================================================ -->
+  <div id="loginOverlay">
+    <div class="login-shell">
+      <button class="login-close-btn" id="loginCloseBtn" title="Tutup" aria-label="Tutup">X</button>
+
+      <!-- Panel Kiri: Branding -->
+      <div class="brand-panel">
+        <div class="top">
+          <div class="brand-logo-row">
+            <img id="loginLogoImg" src="" alt="Logo BPS">
+            <div class="org-name">Badan Pusat Statistik<br>Kota Tasikmalaya</div>
+          </div>
+          <div class="badge-brs">Dashboard Otomatisasi BRS</div>
+          <h1>Tingkat Penghunian Kamar Hotel</h1>
+          <p class="desc">Masuk ke panel admin untuk mengelola data tren TPK bulanan, menyusun narasi Berita
+            Resmi Statistik, dan memantau proyeksi ke depan.</p>
+        </div>
+        <div class="foot">
+          &copy; 2026 BPS Kota Tasikmalaya · Akses ini hanya untuk pengguna yang berwenang.
+        </div>
+      </div>
+
+      <!-- Panel Kanan: Form Login -->
+      <div class="form-panel">
+        <div class="heading">
+          <h2>Masuk Admin</h2>
+          <p>Silakan masukkan kredensial Anda untuk melanjutkan.</p>
+        </div>
+
+        <div class="login-alert" id="loginAlertBox">
+          <span id="loginAlertText">Nama pengguna atau kata sandi salah. Silakan coba lagi.</span>
+        </div>
+
+        <form id="loginForm" novalidate>
+          <div class="login-field">
+            <label for="loginUsername">Email Admin</label>
+            <div class="input-wrap">
+              <input type="email" id="loginUsername" name="username" placeholder="Masukkan email admin"
+                autocomplete="username" required>
+            </div>
+          </div>
+
+          <div class="login-field">
+            <label for="loginPassword">Kata Sandi</label>
+            <div class="input-wrap">
+              <input type="password" id="loginPassword" name="password" placeholder="Masukkan kata sandi"
+                autocomplete="current-password" required style="padding-right:95px;">
+              <button type="button" class="toggle-pw" id="loginTogglePw" aria-label="Tampilkan kata sandi">
+                <span id="loginEyeIcon">Lihat</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="login-row-between" style="justify-content:flex-end;">
+            <a href="#" class="forgot-link" id="loginForgotLink">Lupa kata sandi?</a>
+          </div>
+
+          <button type="submit" class="btn-login" id="loginSubmitBtn">
+            <span id="loginSubmitBtnText">Masuk</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       KONTEN DASHBOARD (tersembunyi sampai berhasil login)
+       ============================================================ -->
+  <div id="dashboardRoot">
+
+  <div class="topbar">
+    <div class="brand">
+      <img
+        src="assets/logobps.png"
+        alt="Logo BPS">
+      <div class="titles">
+        <h1>Dashboard Otomatisasi dan Peramalan BRS-TPK Hotel Kota Tasikmalaya</h1>
+        <p>Badan Pusat Statistik Kota Tasikmalaya</p>
+      </div>
+    </div>
+    <div class="spacer"></div>
+
+    <div class="tabbar" id="publicNav">
+      <button class="tab-btn active" id="tabbtn-beranda" onclick="showPanel('beranda')">Beranda</button>
+      <button class="tab-btn" id="tabbtn-output" onclick="showPanel('output')">Penampil BRS</button>
+      <button class="tab-btn" id="tabbtn-predict" onclick="showPanel('predict')">Peramalan</button>
+    </div>
+
+    <!-- Navigasi untuk admin (setelah login) - cuma 3: Tambah Data, Edit Penampil BRS, Keluar -->
+    <div class="tabbar" id="adminNav" style="display:none;">
+      <button class="tab-btn" id="navbtn-tambah-data" onclick="showPanel('input')">Tambah Data</button>
+      <button class="tab-btn" id="navbtn-edit-penampil" onclick="showPanel('output')">Edit Penampil BRS</button>
+      <button class="btn-logout" id="btnAdminLogout" title="Keluar dari akun admin">Keluar</button>
+    </div>
+  </div>
+
+  <div class="welcome-bar" id="welcomeBar" style="display:none;">
+    
+    <span class="msg">Selamat datang di Dashboard Otomatisasi BRS - Tingkat Penghunian Kamar Hotel, Kota
+      Tasikmalaya.</span>
+    <button class="close-btn" onclick="document.getElementById('welcomeBar').classList.add('hidden')"
+      aria-label="Tutup pesan selamat datang">Tutup</button>
+  </div>
+
+  <main>
+
+    <!-- ============ BERANDA (LANDING) ============ -->
+    <section class="panel active" id="panel-beranda">
+
+      <div class="hero-fullbleed">
+        <div class="hero-split">
+          <div class="hero-text-col">
+            <p class="hero-greeting">Selamat Datang, di</p>
+            <h1>Dashboard Otomatisasi dan Peramalan<br>BRS-TPK Hotel Kota Tasikmalaya</h1>
+            <p class="hero-desc"><b>BRS (Berita Resmi Statistik)</b> adalah publikasi resmi yang diterbitkan Badan
+              Pusat Statistik (BPS) berisi angka dan analisis statistik terkini mengenai suatu bidang tertentu,
+              disusun secara ringkas, mudah dipahami, dan dapat dipertanggungjawabkan.</p>
+            <p class="hero-desc"><b>TPK (Tingkat Penghunian Kamar)</b> adalah persentase jumlah kamar hotel yang
+              terisi/terjual dibandingkan dengan total kamar yang tersedia pada suatu periode.</p>
+            <p class="hero-desc">BRS Tingkat Penghunian Kamar Hotel Kota Tasikmalaya diterbitkan setiap bulan di
+              website resmi BPS, memuat perkembangan TPK hotel bintang dan nonbintang dibandingkan bulan
+              sebelumnya dan bulan yang sama tahun lalu, lengkap dengan data rata-rata lama menginap tamu asing
+              maupun Indonesia.</p>
+            <div class="hero-actions">
+              <button class="btn btn-hero-primary" onclick="showPanel('output')">Penampil BRS</button>
+              <button class="btn btn-hero-ghost" onclick="showPanel('predict')">Peramalan</button>
+            </div>
+          </div>
+          <div class="hero-book-col">
+            <img src="assets/bukubrstpk.png" alt="Contoh sampul BRS TPK Hotel Kota Tasikmalaya"
+              class="hero-book-img">
+            <button class="btn-admin-entry-hero locked-btn" id="adminFab"
+              onclick="requireAdmin(function(){ showPanel('input'); })">Masuk Sebagai Admin</button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============ INPUT PANEL (PANEL ADMIN) ============ -->
+    <section class="panel" id="panel-input">
+
+      <div class="card" style="border:1.5px solid var(--bps-blue);background:linear-gradient(180deg,var(--blue-tint),#fff);">
+        <div class="card-head">
+          <h2><span class="chip">i</span>Panel Admin</h2>
+        </div>
+        <p class="hint" style="font-size:13px;line-height:1.7;margin:0;">
+          1) Isi / tempel data tren TPK bulanan (13 bulan terakhir) dan data rata-rata lama menginap (3 periode) di
+          bawah ini - data bisa ditempel langsung dari Excel.
+          2) Klik <b>"Pratinjau Draf"</b> untuk melihat dulu hasilnya (hanya kamu yang lihat).
+          3) Kalau sudah pas, klik <b>"Terbitkan Edisi Ini"</b> supaya edisi bulan ini resmi tampil di halaman
+          <b>Penampil BRS</b> dan bisa dilihat semua orang.
+        </p>
+      </div>
+
+      <div class="card"
+        style="border:1.5px solid var(--bps-green);background:linear-gradient(180deg,var(--green-tint),#fff);">
+        <div class="card-head">
+          <h2><span class="chip" style="background:var(--green-tint);color:var(--bps-green);">2</span>Terbitkan BRS
+            Bulan Berikutnya</h2>
+        </div>
+        <p class="hint" style="font-size:13px;line-height:1.7;">
+          Setiap bulan, jendela data bergeser satu bulan ke depan - misalnya bulan ini <b>Juni 2025–Juni 2026</b>, bulan
+          depan otomatis jadi <b>Juli 2025–Juli 2026</b>, dan seterusnya.
+          Klik tombol ini untuk otomatis: <b>membuang bulan tertua</b> dari tabel tren, <b>menambah 1 baris bulan
+            baru</b> di akhir, dan <b>menggeser periode</b> di tabel lama-menginap (bulan rilis sekarang jadi "bulan
+          lalu").
+          Setelah digeser, kamu tinggal isi angka bulan yang baru saja.
+        </p>
+        <button class="btn btn-green locked-btn" onclick="requireAdmin(rollToNextMonth)">Geser ke Bulan
+          Berikutnya</button>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2><span class="chip">1</span>Data Tren Bulanan TPK Hotel<span class="locked-hint">Login untuk
+              mengedit</span></h2>
+          <div class="tools">
+            <button class="btn btn-sm btn-primary locked-btn" onclick="requireAdmin(triggerXlsxImport)">Impor
+              File Excel (.xlsx)</button>
+            <button class="btn btn-sm locked-btn" onclick="requireAdmin(toggleTrendPaste)">Tempel dari Excel</button>
+            <button class="btn btn-sm locked-btn" onclick="requireAdmin(addTrendRow)">Tambah Bulan</button>
+            <button class="btn btn-sm btn-danger locked-btn" onclick="requireAdmin(loadSampleTrend)">Muat Data
+              Awal (TPK.xlsx)</button>
+          </div>
+        </div>
+        <input type="file" id="xlsxImportInput" accept=".xlsx" style="display:none" onchange="importXlsxFile(event)">
+        <p class="hint">Kolom: Bulan, TPK Bintang (%), TPK NonBintang (%), TPK Gabungan (%). Baris pertama &amp; dua
+          baris terakhir otomatis dipakai sebagai 3 periode pembanding di Tabel 1. Data awal bersumber dari
+          <b>TPK.xlsx</b> (s.d. Mei 2026) - untuk bulan berikutnya, klik <b>“Impor File Excel”</b> dan unggah file .xlsx
+          terbaru dengan format serupa, atau geser periode secara manual lewat kartu di atas.</p>
+
+        <div class="paste-box" id="trendPasteBox">
+          <p class="note">Salin 4 kolom dari Excel (Bulan / Bintang / NonBintang / Gabungan) - boleh dengan atau tanpa
+            baris judul - lalu tempel di sini:</p>
+          <textarea class="paste-area" id="trendPasteArea" placeholder="Juni 2025	51,36	18,01	35,66
+Juli 2025	48,15	18,31	34,14
+..."></textarea>
+          <div class="paste-actions">
+            <button class="btn btn-primary btn-sm locked-btn" onclick="requireAdmin(applyTrendPaste)">Terapkan</button>
+            <button class="btn btn-sm btn-ghost" onclick="toggleTrendPaste()">Batal</button>
+          </div>
+        </div>
+
+        <div class="table-wrap" style="margin-top:14px;">
+          <table class="edit-tbl">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Bulan</th>
+                <th>TPK Bintang (%)</th>
+                <th>TPK NonBintang (%)</th>
+                <th>TPK Gabungan (%)</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="trendBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2><span class="chip">2</span>Data Tren Bulanan Rata-rata Lama Menginap Tamu (RLMT)<span
+              class="locked-hint">Login untuk mengedit</span></h2>
+          <div class="tools">
+            <button class="btn btn-sm locked-btn" onclick="requireAdmin(toggleStayPaste)">Tempel dari Excel</button>
+            <button class="btn btn-sm locked-btn" onclick="requireAdmin(addRlmtRow)">Tambah Bulan</button>
+            <button class="btn btn-sm btn-danger locked-btn" onclick="requireAdmin(loadSampleStay)">Muat Data
+              Awal (TPK.xlsx)</button>
+          </div>
+        </div>
+        <p class="hint">13 bulan terakhir, per bulan diisi 9 angka (Bintang &amp; NonBintang &amp; Total ×
+          Asing/Indonesia/Total). Baris pertama &amp; dua baris terakhir otomatis dipakai sebagai 3 periode
+          pembanding di Tabel 2 &amp; narasi - sama seperti Tabel 1. Isi “-” bila data tidak tersedia.</p>
+
+        <div class="paste-box" id="stayPasteBox">
+          <p class="note">Salin langsung dari Excel persis seperti pola aslinya: baris judul bulan (opsional), baris
+            Asing/Nusantara/Gabungan (opsional), lalu 3 baris angka berurutan <b>Bintang</b>, <b>NonBintang</b>,
+            <b>Total/Gabungan</b> - masing-masing 3 kolom (Asing, Indonesia, Total) per bulan. Kalau baris judul
+            bulan tidak disertakan, kolom akan dicocokkan urut dengan bulan yang sudah ada di tabel.</p>
+          <textarea class="paste-area" id="stayPasteArea" placeholder="Juni 2025			Juli 2025			Agustus 2025
+Asing	Nusantara	Gabungan	Asing	Nusantara	Gabungan	Asing	Nusantara	Gabungan
+1,90	1,11	1,12	1,71	1,09	1,10	1,74	1,08	1,08
+1,00	1,02	1,02	0,00	1,03	1,03	2,00	1,03	1,03
+1,88	1,09	1,09	1,71	1,08	1,08	1,74	1,07	1,07"></textarea>
+          <div class="paste-actions">
+            <button class="btn btn-primary btn-sm locked-btn" onclick="requireAdmin(applyStayPaste)">Terapkan
+              (gabung dengan data yang ada)</button>
+            <button class="btn btn-sm btn-ghost" onclick="toggleStayPaste()">Batal</button>
+          </div>
+        </div>
+
+        <div class="table-wrap" style="margin-top:14px;">
+          <table class="edit-tbl" id="stayTable">
+            <thead>
+              <tr>
+                <th rowspan="2">Bulan</th>
+                <th colspan="3">Bintang</th>
+                <th colspan="3">NonBintang</th>
+                <th colspan="3">Total</th>
+                <th rowspan="2"></th>
+              </tr>
+              <tr>
+                <th style="font-size:10px;">Asing</th><th style="font-size:10px;">Indonesia</th><th style="font-size:10px;">Total</th>
+                <th style="font-size:10px;">Asing</th><th style="font-size:10px;">Indonesia</th><th style="font-size:10px;">Total</th>
+                <th style="font-size:10px;">Asing</th><th style="font-size:10px;">Indonesia</th><th style="font-size:10px;">Total</th>
+              </tr>
+            </thead>
+            <tbody id="stayBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" style="text-align:center;padding:26px;">
+        <button class="btn" style="padding:14px 26px;font-size:14px;border-radius:12px;margin:0 6px 8px;"
+          onclick="previewDraft()">Pratinjau Draf</button>
+        <button class="btn btn-primary" style="padding:14px 26px;font-size:14px;border-radius:12px;margin:0 6px 8px;"
+          onclick="publishCurrentEdition()">Terbitkan Edisi Ini</button>
+        <p class="hint" style="margin-top:10px;">"Pratinjau Draf" hanya menampilkan perubahan untukmu di halaman Web
+          Penampil BRS. Klik <b>"Terbitkan Edisi Ini"</b> supaya edisi bulan ini resmi tampil dan bisa dipilih semua
+          orang lewat dropdown di Penampil BRS.</p>
+      </div>
+
+    </section>
+
+    <!-- ============ OUTPUT PANEL (WEB PENAMPIL BRS) ============ -->
+    <section class="panel" id="panel-output">
+
+      <div class="edition-bar no-print">
+        <label for="editionPicker">Pilih edisi BRS yang sudah terbit:</label>
+        <select id="editionPicker" onchange="onEditionPickerChange(this.value)">
+          <option value=""> - Belum ada edisi diterbitkan - </option>
+        </select>
+        <button class="btn btn-sm locked-btn" onclick="requireAdmin(editSelectedEdition)" title="Muat edisi ini ke Panel Admin untuk diedit">Edit Edisi Ini</button>
+        <button class="btn btn-sm btn-danger locked-btn" onclick="requireAdmin(deleteSelectedEdition)" title="Hapus edisi ini secara permanen">Hapus Edisi Ini</button>
+      </div>
+
+      <div class="draft-banner no-print" id="draftBanner">
+        Ini pratinjau draf dari Panel Admin dan <b>belum diterbitkan</b> secara resmi - hanya kamu yang bisa
+        melihat tampilan ini sampai admin menekan "Terbitkan Edisi Ini".
+      </div>
+
+      <div class="export-bar no-print">
+        <button class="btn btn-sm" onclick="downloadJSON()">Unduh Data (.json)</button>
+        <button class="btn btn-sm locked-btn" onclick="requireAdmin(triggerLoadJson)">Muat Data
+          (.json)</button>
+        <input type="file" id="loadJsonInput" accept=".json" style="display:none" onchange="loadJSON(event)">
+        <button class="btn btn-green btn-sm" id="btnSavePdf" onclick="downloadPDF()">Simpan PDF</button>
+      </div>
+
+      <div id="brsExportArea">
+
+      <div class="brs-badge">Berita Resmi Statistik - TPK Hotel Kota Tasikmalaya</div>
+
+      <div class="card">
+        <h1 class="brs-main-title" id="brsMainTitle">Perkembangan Tingkat Penghunian Kamar Hotel di Kota Tasikmalaya
+        </h1>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2><span class="chip">i</span>Ringkasan</h2>
+          <button class="btn btn-sm copy-btn no-print" onclick="copyNarrative('briefList')">Salin Teks</button>
+        </div>
+        <ul class="brief-list" id="briefList"></ul>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2 class="section-heading">A. Tingkat Penghunian Kamar Hotel<span class="locked-hint">Login untuk mengedit</span></h2>
+          <button class="btn btn-sm copy-btn no-print" onclick="copyNarrative('narrTPK')">Salin Teks</button>
+        </div>
+        <div class="narrative" id="narrTPK" contenteditable="false"></div>
+      </div>
+
+      <div class="card chart-card">
+        <div class="chart-toolbar no-print">
+          <button class="btn btn-sm" onclick="downloadChartPNG(chart1,'TPK_Gabungan')">Unduh PNG</button>
+        </div>
+        <div class="chart-title" id="chart1Title">Tingkat Penghunian Kamar Hotel Gabungan</div>
+        <canvas id="chart1" height="110"></canvas>
+      </div>
+
+      <div class="card">
+        <div class="out-tbl-wrap">
+          <table class="out-tbl" id="table1Out">
+            <caption>Tabel 1&nbsp; Tingkat Penghunian Kamar (TPK) Hotel di Kota Tasikmalaya <span>Persentase &amp;
+                perubahan poin antar periode</span></caption>
+            <thead>
+              <tr>
+                <th rowspan="2">Klasifikasi Hotel</th>
+                <th colspan="3">TPK (%)</th>
+                <th rowspan="2" id="t1h_yoy">Perubahan (poin)</th>
+                <th rowspan="2" id="t1h_mom">Perubahan (poin)</th>
+              </tr>
+              <tr class="subhead" id="table1PeriodHead"></tr>
+            </thead>
+            <tbody id="table1Body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2><span class="chip">i</span>Narasi - Rata-rata Lama Menginap Tamu<span class="locked-hint">Login untuk mengedit</span></h2>
+          <button class="btn btn-sm copy-btn no-print" onclick="copyNarrative('narrStayTotal')">Salin Teks</button>
+        </div>
+        <div class="narrative" id="narrStayTotal" contenteditable="false"></div>
+      </div>
+
+      <div class="card">
+        <div class="out-tbl-wrap">
+          <table class="out-tbl" id="table2Out">
+            <caption>Tabel 2&nbsp; Rata-Rata Lama Menginap Tamu Asing dan Indonesia Hotel Bintang dan Nonbintang
+              <span>Satuan: malam</span></caption>
+            <thead>
+              <tr>
+                <th rowspan="2">Jenis Hotel</th>
+                <th colspan="3">Asing</th>
+                <th colspan="3">Indonesia</th>
+                <th colspan="3">Total</th>
+              </tr>
+              <tr class="subhead" id="table2PeriodHead"></tr>
+            </thead>
+            <tbody id="table2Body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2><span class="chip">i</span>Narasi - Lama Menginap Asing &amp; Indonesia<span class="locked-hint">Login untuk mengedit</span></h2>
+          <button class="btn btn-sm copy-btn no-print" onclick="copyNarrative('narrStayDetail')">Salin Teks</button>
+        </div>
+        <div class="narrative" id="narrStayDetail" contenteditable="false"></div>
+      </div>
+
+      <div class="card chart-card">
+        <div class="chart-toolbar no-print">
+          <button class="btn btn-sm" onclick="downloadChartPNG(chart2,'TPK_Bintang')">Unduh PNG</button>
+        </div>
+        <div class="chart-title" id="chart2Title">Tingkat Penghunian Kamar Hotel Bintang</div>
+        <canvas id="chart2" height="110"></canvas>
+      </div>
+
+      </div>
+      <!-- /#brsExportArea -->
+
+      <div class="card viewer-cta-card no-print">
+        <h3>Ingin menambah / mengubah data?</h3>
+        <p>Masuk ke Panel Admin untuk mengedit data bulanan dan menerbitkan edisi BRS baru, atau lihat proyeksi
+          TPK ke beberapa bulan ke depan di halaman Peramalan.</p>
+        <div class="viewer-cta-actions">
+          <button class="btn btn-primary locked-btn" onclick="requireAdmin(function(){ showPanel('input'); })">
+            Masuk Panel Admin</button>
+          <button class="btn" onclick="showPanel('predict')">Lihat Peramalan</button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============ PREDIKSI PANEL ============ -->
+    <section class="panel" id="panel-predict">
+
+      <div class="card">
+        <div class="card-head">
+          <h2><span class="chip">i</span>Peramalan Tingkat Penghunian Kamar Hotel</h2>
+        </div>
+        <p class="hint">Model Holt-Winters Exponential Smoothing atas data TPK historis (dihitung ulang otomatis
+          mengikuti data terbaru di Panel Admin), dengan catatan pengaruh periode Idul Fitri. Angka peramalan
+          disertai rentang ketidakpastian (kira-kira 90%) yang melebar semakin jauh ke depan.</p>
+      </div>
+
+      <div class="predict-warning-banner" id="predictGapWarning"></div>
+
+      <div class="kpi-grid">
+        <div class="kpi-box kpi-clickable" onclick="jumpToCard('cardChartActual')" title="Lihat grafik data aktual">
+          <p class="kpi-label">TPK Gabungan Terakhir</p>
+          <p class="kpi-value" id="kpiLastActualValue">39,61<span class="unit">%</span></p>
+          <p class="kpi-delta pos" id="kpiLastActualLabel">Mei 2026</p>
+        </div>
+        <div class="kpi-box kpi-clickable" onclick="jumpToCard('cardForecast')" title="Lihat tabel hasil peramalan">
+          <p class="kpi-label" id="kpiForecastLabel">Peramalan Juni 2026</p>
+          <p class="kpi-value" id="kpiForecastValue">38,43<span class="unit">%</span></p>
+          <p class="kpi-delta neg" id="kpiForecastDelta">&minus;1,18 poin dari Mei</p>
+        </div>
+        <div class="kpi-box kpi-clickable" onclick="jumpToCard('cardAccuracy')" title="Lihat tabel akurasi model">
+          <p class="kpi-label">Akurasi Model (MAPE)</p>
+          <p class="kpi-value" id="kpiAccuracyValue">9,14<span class="unit">%</span></p>
+          <p class="kpi-delta pos">Holt-Winters, kategori Gabungan</p>
+        </div>
+        <div class="kpi-box kpi-clickable" onclick="jumpToCard('cardIdulFitri')" title="Lihat catatan periode Idul Fitri">
+          <p class="kpi-label">Efek Idul Fitri</p>
+          <p class="kpi-value" id="kpiIdulFitriValue">&minus;6,43<span class="unit">poin</span></p>
+          <p class="kpi-delta neg">rata-rata penurunan TPK</p>
+        </div>
+      </div>
+
+      <div class="card" id="cardChartActual">
+        <div class="card-head">
+          <h2><span class="chip">1</span>Data Aktual vs Peramalan</h2>
+        </div>
+        <p class="hint">Oktober 2023&ndash;Mei 2026 data aktual, Juni&ndash;November 2026 hasil peramalan
+          Holt-Winters. Pilih kategori hotel di bawah.</p>
+        <div class="pill-tabs" id="predictCatTabs">
+          <button class="pill-tab active" data-cat="gabungan">Gabungan</button>
+          <button class="pill-tab" data-cat="bintang">Bintang</button>
+          <button class="pill-tab" data-cat="nonbintang">NonBintang</button>
+        </div>
+        <div class="legend-row">
+          <div class="legend-item"><span class="legend-dot" style="background:#0093DD"></span>Data aktual</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#68B92E"></span>Peramalan</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#c0392b"></span>Bulan Idul Fitri</div>
+        </div>
+        <div style="position:relative;height:340px;">
+          <canvas id="predictChart"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2><span class="chip">2</span>Cari TPK per Bulan</h2>
+        </div>
+        <p class="hint">Pilih bulan (Okt 2023&ndash;Nov 2026) untuk melihat angka TPK-nya langsung - data aktual atau
+          hasil peramalan.</p>
+        <div class="predict-search-row">
+          <select id="predictMonthPicker"></select>
+          <button class="btn btn-primary btn-sm" id="predictSearchBtn">Cari</button>
+        </div>
+        <div class="predict-result" id="predictResult">
+          <div class="tag-row">
+            <span class="month-name" id="predResMonth"></span>
+            <span class="badge" id="predResTag"></span>
+          </div>
+          <div class="result-grid3">
+            <div class="rbox">
+              <p class="rlbl">Bintang</p>
+              <p class="rval" id="predResBintang"></p>
+            </div>
+            <div class="rbox">
+              <p class="rlbl">NonBintang</p>
+              <p class="rval" id="predResNonbintang"></p>
+            </div>
+            <div class="rbox">
+              <p class="rlbl">Gabungan</p>
+              <p class="rval" id="predResGabungan"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="cardAccuracy">
+        <div class="card-head">
+          <h2><span class="chip">3</span>Akurasi Model</h2>
+        </div>
+        <p class="hint" id="accuracyHint">Diuji pada holdout beberapa bulan terakhir menggunakan model
+          Holt-Winters.</p>
+        <div class="out-tbl-wrap">
+          <table class="out-tbl">
+            <thead>
+              <tr>
+                <th>Kategori</th>
+                <th>RMSE</th>
+                <th>MAPE</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="lbl-cell">Hotel Bintang</td>
+                <td id="accRmse_bintang">4,57</td>
+                <td id="accMape_bintang">7,35%</td>
+              </tr>
+              <tr>
+                <td class="lbl-cell">Hotel NonBintang</td>
+                <td id="accRmse_nonbintang">5,62</td>
+                <td id="accMape_nonbintang">23,56%</td>
+              </tr>
+              <tr class="total-row">
+                <td class="lbl-cell">Gabungan</td>
+                <td id="accRmse_gabungan">4,07</td>
+                <td id="accMape_gabungan">9,14%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card" id="cardForecast">
+          <div class="card-head">
+            <h2><span class="chip">4</span>Hasil Peramalan 6 Bulan ke Depan</h2>
+          </div>
+          <p class="hint">Juni&ndash;November 2026, model Holt-Winters yang dilatih ulang pada seluruh data
+            historis.</p>
+          <div class="out-tbl-wrap">
+            <table class="out-tbl">
+              <thead>
+                <tr>
+                  <th>Bulan</th>
+                  <th>Bintang</th>
+                  <th>NonBintang</th>
+                  <th>Gabungan</th>
+                </tr>
+              </thead>
+              <tbody id="predictForecastBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="note-card" id="cardIdulFitri">
+          <h3>Catatan Periode Idul Fitri</h3>
+          <div class="note-stat-row">
+            <div class="note-stat">
+              <div class="num" id="idulFitriDuringVal">33,76%</div>
+              <div class="lbl">Saat Idul Fitri</div>
+            </div>
+            <div class="note-stat">
+              <div class="num" id="idulFitriNormalVal">36,29%</div>
+              <div class="lbl">Bulan Biasa</div>
+            </div>
+          </div>
+          <p>TPK justru <b>menurun</b> saat Idul Fitri, diduga karena Tasikmalaya adalah kota tujuan mudik&mdash;masyarakat
+            menginap di rumah keluarga, bukan hotel. Karena tanggal Idul Fitri bergeser tiap tahun (kalender
+            Hijriah), efek ini tidak dimasukkan ke model peramalan utama (data historisnya baru 4 kejadian), dan
+            disajikan sebagai temuan terpisah.</p>
+          <div class="note-events">
+            <div class="ev"><span>Apr 2024</span><span>10 April 2024</span></div>
+            <div class="ev"><span>Mar&ndash;Apr 2025</span><span>31 Mar&ndash;1 Apr 2025</span></div>
+            <div class="ev"><span>Mar 2026</span><span>21 Maret 2026</span></div>
+          </div>
+        </div>
+      </div>
+
+      <p style="text-align:center;color:var(--ink-soft);font-size:12px;margin-top:8px;">Data: rekap TPK BPS Kota
+        Tasikmalaya, Oktober 2023&ndash;Mei 2026, dikonsolidasikan dari 30+ sheet bulanan. Model: Holt-Winters
+        Exponential Smoothing (tren dan musiman aditif, periode 12 bulan), dievaluasi melalui holdout 6 bulan.</p>
+
+    </section>
+
+  </main>
+
+  <footer>Dibuat untuk otomatisasi penyusunan Berita Resmi Statistik &middot; <b>BPS Kota Tasikmalaya</b> &middot; Data
+    diinput manual oleh petugas, seluruh perhitungan dilakukan otomatis di peramban (tidak dikirim ke server manapun).
+  </footer>
+
+  <div class="toast" id="toast">Tersalin ke clipboard</div>
+
+  <script src="js/lib/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/supabaseClient.js"></script>
+  <script src="js/app.js"></script>
+
+  </div>
+  <!-- /#dashboardRoot -->
+
+  <script src="js/login.js"></script>
+</body>
+
+</html>
