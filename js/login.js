@@ -93,11 +93,14 @@
 
     // Cek sesi Supabase yang mungkin masih tersimpan (supabase-js otomatis
     // menyimpan sesi login ke localStorage & memperbaruinya sendiri).
+    // Dipanggil (dengan await) dari js/app.js di awal proses init, SEBELUM
+    // mengambil draft/edisi dari database - supaya status login sudah pasti
+    // diketahui dulu dan tidak ada race condition dengan RLS Supabase.
     async function checkExistingSession() {
-     if (!supabaseClient) { updateAdminUI(); return; }
-     const { data } = await supabaseClient.auth.getSession();
-     isAdmin = !!(data && data.session);
-     updateAdminUI();
+      if (!supabaseClient) { updateAdminUI(); return; }
+      const { data } = await supabaseClient.auth.getSession();
+      isAdmin = !!(data && data.session);
+      updateAdminUI();
     }
 
     // Toggle tampilkan/sembunyikan kata sandi
