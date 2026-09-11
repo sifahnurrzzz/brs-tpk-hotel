@@ -1558,18 +1558,21 @@
        INIT
        ============================================================ */
     document.addEventListener("DOMContentLoaded", async () => {
-  // Pastikan status login (sesi Supabase) sudah pasti diketahui DULU,
-  // baru lanjut ambil draft/edisi - supaya tidak ada race condition
-  if (typeof checkExistingSession === "function") {
-    await checkExistingSession();
-  }
+      // Pastikan status login (sesi Supabase) sudah pasti diketahui DULU,
+      // baru lanjut ambil draft/edisi dari database - kalau tidak, request
+      // ambil draft bisa keburu jalan sebelum sesi login terkonfirmasi,
+      // sehingga RLS Supabase menganggap kita masih anonim dan menolak
+      // membaca draft_data (baliknya ke data contoh Mei 2026 terus).
+      if (typeof checkExistingSession === "function") {
+        await checkExistingSession();
+      }
 
-  if (typeof Chart === "undefined") {
-    showToast("Gagal memuat pustaka grafik (Chart.js)");
-  }
-  if (typeof SUPABASE_CONFIGURED !== "undefined" && !SUPABASE_CONFIGURED) {
-    showToast("Supabase belum dikonfigurasi - lihat README.md");
-  }
+      if (typeof Chart === "undefined") {
+        showToast("Gagal memuat pustaka grafik (Chart.js)");
+      }
+      if (typeof SUPABASE_CONFIGURED !== "undefined" && !SUPABASE_CONFIGURED) {
+        showToast("Supabase belum dikonfigurasi - lihat README.md");
+      }
 
       // Muat draf yang sebelumnya disimpan admin dari database (kalau ada)
       // supaya perubahan/edisi baru yang belum diterbitkan tidak hilang saat
