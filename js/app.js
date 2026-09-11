@@ -25,7 +25,16 @@
     // database (tabel draft_data), supaya kalau halaman di-refresh atau
     // dibuka lagi nanti (bahkan dari perangkat lain), perubahan yang belum
     // diterbitkan tidak hilang begitu saja.
+    //
+    // suppressDraftAutosave: dipakai SAAT INIT saja - supaya kalau proses
+    // ambil draf dari database gagal/telat (mis. RLS belum sempat
+    // terkonfirmasi) dan sistem terpaksa fallback ke data contoh, fallback
+    // itu TIDAK otomatis menimpa draf asli yang sudah tersimpan di database.
+    // Render tabel yang dipicu aksi admin sungguhan (edit sel, tambah/hapus
+    // baris, impor, dll) tetap selalu tersimpan seperti biasa.
+    let suppressDraftAutosave = false;
     function saveDraftToStorage() {
+      if (suppressDraftAutosave) return;
       if (typeof dbSaveDraft !== "function") return;
       dbSaveDraft(trendRows, rlmtRows).then(err => {
         if (err) console.error("Gagal menyimpan draf ke database:", err.message || err);
@@ -1577,12 +1586,19 @@
       // Muat draf yang sebelumnya disimpan admin dari database (kalau ada)
       // supaya perubahan/edisi baru yang belum diterbitkan tidak hilang saat
       // halaman dibuka lagi. Kalau belum pernah ada draf, pakai data contoh.
+      // suppressDraftAutosave aktif sementara di sini supaya kalau load-nya
+      // gagal/kosong dan terpaksa fallback ke data contoh, fallback itu
+      // TIDAK otomatis menimpa draf asli yang mungkin sudah ada di database
+      // (kita sengaja TIDAK auto-save fallback ini - biar aman, draf asli
+      // baru akan tertimpa kalau admin benar-benar melakukan perubahan).
+      suppressDraftAutosave = true;
       if (!(await loadDraftFromStorage())) {
         trendRows = defaultTrend();
         rlmtRows = defaultStay();
       }
       renderTrendTable();
       renderStayTable();
+      suppressDraftAutosave = false;
 
       // Ambil daftar edisi yang sudah diterbitkan dari database
       publishedEditions = await dbFetchEditions();
