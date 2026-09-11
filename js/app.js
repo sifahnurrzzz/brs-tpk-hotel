@@ -1565,11 +1565,11 @@
   }
 
   if (typeof Chart === "undefined") {
-        showToast("Gagal memuat pustaka grafik (Chart.js)");
-      }
-      if (typeof SUPABASE_CONFIGURED !== "undefined" && !SUPABASE_CONFIGURED) {
-        showToast("Supabase belum dikonfigurasi - lihat README.md");
-      }
+    showToast("Gagal memuat pustaka grafik (Chart.js)");
+  }
+  if (typeof SUPABASE_CONFIGURED !== "undefined" && !SUPABASE_CONFIGURED) {
+    showToast("Supabase belum dikonfigurasi - lihat README.md");
+  }
 
       // Muat draf yang sebelumnya disimpan admin dari database (kalau ada)
       // supaya perubahan/edisi baru yang belum diterbitkan tidak hilang saat
