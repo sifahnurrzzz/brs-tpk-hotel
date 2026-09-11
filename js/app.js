@@ -1558,7 +1558,13 @@
        INIT
        ============================================================ */
     document.addEventListener("DOMContentLoaded", async () => {
-      if (typeof Chart === "undefined") {
+  // Pastikan status login (sesi Supabase) sudah pasti diketahui DULU,
+  // baru lanjut ambil draft/edisi - supaya tidak ada race condition
+  if (typeof checkExistingSession === "function") {
+    await checkExistingSession();
+  }
+
+  if (typeof Chart === "undefined") {
         showToast("Gagal memuat pustaka grafik (Chart.js)");
       }
       if (typeof SUPABASE_CONFIGURED !== "undefined" && !SUPABASE_CONFIGURED) {
