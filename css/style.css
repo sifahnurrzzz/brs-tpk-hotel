@@ -664,6 +664,7 @@
       padding: 24px 26px;
       margin-bottom: 20px;
       position: relative;
+      min-width: 0;
     }
 
     .card-head {
@@ -1203,6 +1204,7 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 20px;
+      min-width: 0;
     }
 
     @media (max-width:900px) {
