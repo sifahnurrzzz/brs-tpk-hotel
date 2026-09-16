@@ -261,7 +261,7 @@
       flex-wrap: wrap;
     }
 
-    .btn-hero-primary {
+    .btn.btn-hero-primary {
       border: none;
       cursor: pointer;
       font-family: 'Poppins', sans-serif;
@@ -275,11 +275,11 @@
       transition: .15s ease;
     }
 
-    .btn-hero-primary:hover {
+    .btn.btn-hero-primary:hover {
       transform: translateY(-1px);
     }
 
-    .btn-hero-ghost {
+    .btn.btn-hero-ghost {
       border: 1.5px solid rgba(255, 255, 255, .55);
       cursor: pointer;
       font-family: 'Poppins', sans-serif;
@@ -292,7 +292,7 @@
       transition: .15s ease;
     }
 
-    .btn-hero-ghost:hover {
+    .btn.btn-hero-ghost:hover {
       background: rgba(255, 255, 255, .18);
     }
 
