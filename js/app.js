@@ -1583,22 +1583,16 @@
         showToast("Supabase belum dikonfigurasi - lihat README.md");
       }
 
-      // Muat draf yang sebelumnya disimpan admin dari database (kalau ada)
-      // supaya perubahan/edisi baru yang belum diterbitkan tidak hilang saat
-      // halaman dibuka lagi. Kalau belum pernah ada draf, pakai data contoh.
+      // Muat draf yang sebelumnya disimpan admin dari database (kalau ada).
       // suppressDraftAutosave aktif sementara di sini supaya kalau load-nya
       // gagal/kosong dan terpaksa fallback ke data contoh, fallback itu
-      // TIDAK otomatis menimpa draf asli yang mungkin sudah ada di database
-      // (kita sengaja TIDAK auto-save fallback ini - biar aman, draf asli
-      // baru akan tertimpa kalau admin benar-benar melakukan perubahan).
+      // TIDAK otomatis menimpa draf asli yang mungkin sudah ada di database.
       suppressDraftAutosave = true;
-      if (!(await loadDraftFromStorage())) {
+      const draftLoaded = await loadDraftFromStorage();
+      if (!draftLoaded) {
         trendRows = defaultTrend();
         rlmtRows = defaultStay();
       }
-      renderTrendTable();
-      renderStayTable();
-      suppressDraftAutosave = false;
 
       // Ambil daftar edisi yang sudah diterbitkan dari database
       publishedEditions = await dbFetchEditions();
@@ -1627,12 +1621,36 @@
         }
       }
 
+      const newestEdition = publishedEditions.length
+        ? [...publishedEditions].sort((a, b) => monthSortKey(b.label) - monthSortKey(a.label))[0]
+        : null;
+
+      // Samakan draf Panel Admin dengan database: kalau edisi yang sudah
+      // terbit ternyata bulannya lebih baru daripada draf yang tersimpan
+      // (mis. admin menerbitkan lewat sesi lain lalu lupa "Edit Edisi Ini"),
+      // pakai data edisi terbaru itu sebagai draf - supaya tabel "Tambah
+      // Data" selalu konsisten dengan apa yang sungguhan ada di database.
+      const draftLastMonth = trendRows.length ? trendRows[trendRows.length - 1].bulan : null;
+      const draftLastKey = draftLastMonth !== null ? monthSortKey(draftLastMonth) : -Infinity;
+      const editionLastKey = newestEdition ? monthSortKey(newestEdition.label) : -Infinity;
+      const draftWasSynced = !!(newestEdition && editionLastKey > draftLastKey);
+      if (draftWasSynced) {
+        trendRows = cloneRows(newestEdition.trendRows);
+        rlmtRows = cloneRows(newestEdition.rlmtRows);
+      }
+
+      renderTrendTable();
+      renderStayTable();
+      suppressDraftAutosave = false;
+      // Kalau tadi disamakan dengan edisi terbaru, simpan juga hasilnya ke
+      // draft_data supaya load berikutnya sudah langsung konsisten.
+      if (draftWasSynced) saveDraftToStorage();
+
       // Tampilkan edisi terbaru yang sudah diterbitkan di Penampil BRS
-      if (publishedEditions.length) {
-        const newest = [...publishedEditions].sort((a, b) => monthSortKey(b.label) - monthSortKey(a.label))[0];
-        activeTrendRows = cloneRows(newest.trendRows);
-        activeRlmtRows = cloneRows(newest.rlmtRows);
-        currentEditionLabel = newest.label;
+      if (newestEdition) {
+        activeTrendRows = cloneRows(newestEdition.trendRows);
+        activeRlmtRows = cloneRows(newestEdition.rlmtRows);
+        currentEditionLabel = newestEdition.label;
       }
       refreshEditionPicker();
       renderTable1();
