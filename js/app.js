@@ -173,7 +173,7 @@
       <td><input ${ro} value="${row.bintang ?? ""}" onchange="trendRows[${i}].bintang=toNum(this.value);saveDraftToStorage();"></td>
       <td><input ${ro} value="${row.nonbintang ?? ""}" onchange="trendRows[${i}].nonbintang=toNum(this.value);saveDraftToStorage();"></td>
       <td><input ${ro} value="${row.total ?? ""}" onchange="trendRows[${i}].total=toNum(this.value);saveDraftToStorage();"></td>
-      <td class="action-cell"><button class="rmrow-btn" onclick="requireAdmin(removeTrendRow,${i})" title="Hapus baris">Hapus</button></td>
+      <td class="action-cell"><div class="row-actions"><button class="editrow-btn" onclick="requireAdmin(toggleRowEdit, this, 'trendBody', ${i})" title="Edit baris">Edit</button><button class="rmrow-btn" onclick="requireAdmin(removeTrendRow,${i})" title="Hapus baris">Hapus</button></div></td>
     `;
         body.appendChild(tr);
       });
@@ -252,6 +252,16 @@
       trendRows.splice(i, 1);
       renderTrendTable();
     }
+
+    function toggleRowEdit(button, bodyId, rowIndex) {
+      const row = document.getElementById(bodyId)?.querySelectorAll("tr")[rowIndex];
+      if (!row) return;
+      const isEditing = row.classList.toggle("row-editing");
+      row.querySelectorAll("input").forEach(input => { input.readOnly = !isEditing; });
+      button.textContent = isEditing ? "Simpan" : "Edit";
+      if (isEditing) row.querySelector("input")?.focus();
+      else saveDraftToStorage();
+    }
     function toggleTrendPaste() {
       document.getElementById("trendPasteBox").classList.toggle("open");
     }
@@ -294,7 +304,7 @@
             cellsHTML += `<td><input ${ro} value="${val === null || val === undefined ? '' : val}" onchange="rlmtRows[${i}]['${rowKey}']['${colKey}']=toNum(this.value);saveDraftToStorage();"></td>`;
           });
         });
-        cellsHTML += `<td class="action-cell"><button class="rmrow-btn" onclick="requireAdmin(removeRlmtRow,${i})" title="Hapus baris">Hapus</button></td>`;
+        cellsHTML += `<td class="action-cell"><div class="row-actions"><button class="editrow-btn" onclick="requireAdmin(toggleRowEdit, this, 'stayBody', ${i})" title="Edit baris">Edit</button><button class="rmrow-btn" onclick="requireAdmin(removeRlmtRow,${i})" title="Hapus baris">Hapus</button></div></td>`;
         const tr = document.createElement("tr");
         tr.innerHTML = cellsHTML;
         body.appendChild(tr);
@@ -638,9 +648,43 @@
       }
     }
 
+    function toggleMobileNav() {
+      const root = document.getElementById("dashboardRoot");
+      const toggle = document.getElementById("mobileNavToggle");
+      if (!root || !toggle) return;
+      const isOpen = root.classList.toggle("mobile-menu-open");
+      toggle.setAttribute("aria-expanded", String(isOpen));
+      toggle.setAttribute("aria-label", isOpen ? "Tutup menu navigasi" : "Buka menu navigasi");
+    }
+
+    function closeMobileNav() {
+      const root = document.getElementById("dashboardRoot");
+      const toggle = document.getElementById("mobileNavToggle");
+      if (!root || !toggle) return;
+      root.classList.remove("mobile-menu-open");
+      toggle.setAttribute("aria-expanded", "false");
+      toggle.setAttribute("aria-label", "Buka menu navigasi");
+    }
+
+    function initPanelTransitions() {
+      const outputPanel = document.getElementById("panel-output");
+      if (!outputPanel || !("IntersectionObserver" in window)) return;
+
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          outputPanel.classList.toggle("is-entering", entry.isIntersecting);
+        });
+      }, { threshold: .12 });
+
+      observer.observe(outputPanel);
+    }
+
     function showPanel(name) {
+      closeMobileNav();
       const goingToAdmin = name === "input";
+      const goingToPredict = name === "predict";
       document.body.classList.toggle("viewing-admin", goingToAdmin);
+      document.body.classList.toggle("viewing-predict", goingToPredict);
 
       document.getElementById("tabbtn-beranda").classList.toggle("active", name === "beranda");
       document.getElementById("tabbtn-output").classList.toggle("active", name === "output");
@@ -666,8 +710,8 @@
         return;
       }
 
-      // Beranda, Penampil BRS, dan Peramalan adalah satu halaman panjang yang
-      // selalu tampil sekaligus - navigasi tinggal scroll halus ke bagiannya.
+      // Beranda dan Penampil BRS berada dalam satu alur scroll. Peramalan
+      // dibuka sebagai tampilan terpisah agar tidak ikut terseret saat scroll.
       const targetId = name === "beranda" ? "panel-beranda" : name === "output" ? "panel-output" : "panel-predict";
       const target = document.getElementById(targetId);
       if (target) {
@@ -1657,6 +1701,7 @@
       renderTable2();
       renderNarratives();
       initPredictPanel();
+      initPanelTransitions();
       showPanel("beranda");
       // Penampil BRS & Peramalan sekarang selalu tampil (satu halaman yang
       // bisa di-scroll), jadi grafiknya perlu langsung digambar saat load,
