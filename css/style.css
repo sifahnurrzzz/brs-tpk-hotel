@@ -4457,6 +4457,8 @@
       padding: 11px 18px !important;
       border-radius: 10px !important;
       font-size: 13px !important;
+      justify-content: center;
+      text-align: center;
     }
 
     #panel-input > .card:last-child .btn-primary {
