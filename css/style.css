@@ -3923,6 +3923,13 @@
         display: grid !important;
       }
 
+      #dashboardRoot.mobile-menu-open #publicNav[style*="display:none"],
+      #dashboardRoot.mobile-menu-open #publicNav[style*="display: none"],
+      #dashboardRoot.mobile-menu-open #adminNav[style*="display:none"],
+      #dashboardRoot.mobile-menu-open #adminNav[style*="display: none"] {
+        display: none !important;
+      }
+
       #publicNav .tab-btn,
       #adminNav .tab-btn,
       #adminNav .btn-logout {
@@ -4045,6 +4052,176 @@
     #panel-predict > .card:first-child .card-head {
       justify-content: flex-start;
       margin-bottom: 11px;
+    }
+
+    /* Final mobile layout: keep the header compact and let the hero breathe. */
+    @media (max-width: 820px) {
+      .topbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+      }
+
+      .topbar .brand {
+        min-width: 0;
+        width: 100%;
+        padding-right: 0;
+      }
+
+      .topbar .titles h1 {
+        white-space: normal;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        overflow: hidden;
+        font-size: clamp(12px, 2.8vw, 15px);
+        line-height: 1.25;
+      }
+
+      .topbar .titles p {
+        margin-top: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .mobile-nav-toggle {
+        grid-column: 2;
+        grid-row: 1;
+        margin-left: 0;
+        order: initial;
+      }
+
+      #publicNav,
+      #adminNav {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        margin: 0;
+      }
+
+      #publicNav .tab-btn,
+      #adminNav .tab-btn,
+      #adminNav .btn-logout {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .hero-fullbleed {
+        left: auto;
+        right: auto;
+        width: calc(100% + 28px);
+        min-height: auto;
+        margin-top: -18px;
+        margin-left: -14px;
+        margin-right: 0;
+        margin-bottom: 24px;
+      }
+
+      footer {
+        left: 0;
+        width: 100%;
+        margin-left: 0;
+      }
+
+      .hero-split {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 24px;
+        padding: 34px clamp(16px, 5vw, 28px) 42px;
+      }
+
+      .hero-book-col {
+        display: contents;
+      }
+
+      .hero-book-img {
+        grid-column: 1;
+        grid-row: 1;
+        justify-self: center;
+        width: min(52vw, 210px);
+        max-width: 100%;
+        margin-top: 8px;
+      }
+
+      .hero-text-col {
+        grid-column: 1;
+        grid-row: 2;
+        width: 100%;
+        text-align: left;
+      }
+
+      .hero-greeting {
+        font-size: 10px !important;
+      }
+
+      .hero-split h1 {
+        max-width: none;
+        font-size: clamp(25px, 7.5vw, 34px);
+        line-height: 1.14;
+        margin: 12px 0 18px;
+      }
+
+      .hero-split h1 br {
+        display: none;
+      }
+
+      .hero-desc,
+      .hero-text-col .hero-desc {
+        max-width: none;
+        font-size: 12.5px !important;
+        line-height: 1.65;
+        text-align: left;
+      }
+
+      .hero-split .hero-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 9px;
+        margin-top: 20px;
+      }
+
+      .hero-split .hero-actions .btn.btn-hero-primary,
+      .hero-split .hero-actions .btn.btn-hero-ghost {
+        width: 100%;
+        min-width: 0;
+        padding: 11px 10px;
+        font-size: 12px;
+        white-space: normal;
+      }
+
+      .btn-admin-entry-hero {
+        grid-column: 1;
+        grid-row: 3;
+        justify-self: center;
+        max-width: 100%;
+        padding: 11px 16px;
+        white-space: normal;
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .topbar img {
+        height: 32px;
+      }
+
+      .topbar .titles p {
+        font-size: 9px;
+        letter-spacing: .35px;
+      }
+
+      .hero-split .hero-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-split .hero-actions .btn.btn-hero-primary,
+      .hero-split .hero-actions .btn.btn-hero-ghost {
+        min-height: 44px;
+      }
     }
 
     #panel-predict > .card:first-child .card-head h2 {
