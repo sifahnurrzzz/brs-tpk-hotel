@@ -4420,11 +4420,7 @@
     #panel-input > .card:last-child {
       position: relative;
       overflow: hidden;
-      display: grid;
-      grid-template-columns: repeat(2, auto);
-      align-items: center;
-      justify-content: center;
-      gap: 12px 8px;
+      display: block;
       padding: 26px 28px !important;
       border: 1px solid #cfe2ec;
       border-radius: 18px;
@@ -4440,15 +4436,14 @@
     #panel-input > .card:last-child .btn {
       position: relative;
       z-index: 1;
-      margin: 0 !important;
+      display: inline-flex;
+      margin: 0 4px 10px !important;
       min-height: 43px;
       padding: 11px 18px !important;
       border-radius: 10px !important;
       font-size: 13px !important;
       justify-content: center;
       text-align: center;
-      justify-self: center;
-      grid-row: 1;
     }
 
     #panel-input > .card:last-child .btn-primary {
@@ -4456,8 +4451,7 @@
     }
 
     #panel-input > .card:last-child p.hint {
-      grid-column: 1 / -1;
-      grid-row: 2;
+      display: block;
       max-width: 780px;
       margin: 0 auto !important;
       color: #536d7d;
@@ -4468,8 +4462,6 @@
 
     @media (max-width: 640px) {
       #panel-input > .card:last-child {
-        grid-template-columns: 1fr;
-        gap: 13px;
         padding: 20px 17px !important;
       }
 
@@ -4478,15 +4470,12 @@
       }
 
       #panel-input > .card:last-child .btn {
+        display: flex;
         width: 100%;
         margin: 0 0 7px !important;
-        grid-column: 1;
-        grid-row: auto;
       }
 
       #panel-input > .card:last-child p.hint {
-        grid-column: 1;
-        grid-row: auto;
         margin-top: 2px !important;
         font-size: 12px !important;
       }
